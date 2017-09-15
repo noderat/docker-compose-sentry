@@ -1,0 +1,80 @@
+version: "3"
+
+volumes:
+  sentry-filestore:
+  pg-data:
+
+services:
+  redis:
+    image: redis:alpine
+  
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: "sentry"
+      POSTGRES_PASSWORD: "secret"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "pg-data:/var/lib/postgresql/data"
+
+  sentry:
+    image: my-sentry
+    build: Sentry/
+    environment:
+      SENTRY_SECRET_KEY: "d7^sl@nblf*cbnjb0fq-fnm#(m*bn5eqamon_9&9kgj6swdv8_"
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: secret
+      SENTRY_SUPERUSER_EMAIL: 'admin@user'
+      SENTRY_SUPERUSER_PASS: 'changeme'
+      COMPOSE_MODE: indeed
+      WAIT_FOR_POSTGRES: 60
+      WAIT_FOR_REDIS: 60
+    volumes:
+      - "sentry-filestore:/var/lib/sentry/files"
+    ports:
+      - "9000:9000"
+    links:
+      - redis
+      - postgres
+
+  sentry-cron:
+    image: my-sentry
+    build: Sentry/
+    command: "sentry run cron"
+    environment:
+      SENTRY_SECRET_KEY: "d7^sl@nblf*cbnjb0fq-fnm#(m*bn5eqamon_9&9kgj6swdv8_"
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: secret
+      WAIT_FOR_POSTGRES: 60
+      WAIT_FOR_REDIS: 60
+      WAIT_FOR_SENTRY: 60
+    links:
+      - redis
+      - postgres
+      - sentry
+
+  sentry-worker:
+    image: my-sentry
+    build: Sentry/
+    command: "sentry run worker"
+    environment:
+      SENTRY_SECRET_KEY: "d7^sl@nblf*cbnjb0fq-fnm#(m*bn5eqamon_9&9kgj6swdv8_"
+      SENTRY_REDIS_HOST: redis
+      SENTRY_POSTGRES_HOST: postgres
+      SENTRY_POSTGRES_PORT: 5432
+      SENTRY_DB_USER: sentry
+      SENTRY_DB_PASSWORD: secret
+      WAIT_FOR_POSTGRES: 60
+      WAIT_FOR_REDIS: 60
+      WAIT_FOR_SENTRY: 60
+    links:
+      - redis
+      - postgres
+      - sentry
