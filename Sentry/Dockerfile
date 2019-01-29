@@ -1,6 +1,6 @@
 FROM sentry:latest
 
-ADD https://cdn.rawgit.com/vishnubob/wait-for-it/db049716/wait-for-it.sh /bin/wait-for-it
+ADD https://cdn.jsdelivr.net/gh/vishnubob/wait-for-it@db049716/wait-for-it.sh /bin/wait-for-it
 RUN chmod +x /bin/wait-for-it
 
 COPY custom-entrypoint.sh /custom-entrypoint.sh
